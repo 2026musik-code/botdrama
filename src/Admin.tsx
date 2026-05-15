@@ -16,6 +16,7 @@ export default function Admin() {
   const [telegramBots, setTelegramBots] = useState<{name: string, token: string}[]>([]);
   const [botImageUrl, setBotImageUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [activeRightTab, setActiveRightTab] = useState<'web' | 'bot'>('web');
   
   const navigate = useNavigate();
 
@@ -369,67 +370,135 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Right Col - Users */}
+        {/* Right Col - Users/Bot Visitors */}
         <div className="lg:col-span-2 space-y-4">
-           <div className="flex items-center justify-between mb-2">
-             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-               <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna
-             </h2>
-             <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
-               Total: {config?.users?.length || 0}
-             </div>
+           
+           <div className="flex gap-2 p-1 bg-[#161618] border border-white/5 rounded-xl">
+             <button 
+               onClick={() => setActiveRightTab('web')}
+               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeRightTab === 'web' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+             >
+               <Users className="w-4 h-4" /> Pengguna Web
+             </button>
+             <button 
+               onClick={() => setActiveRightTab('bot')}
+               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeRightTab === 'bot' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+               Pengunjung Bot
+             </button>
            </div>
            
-           <div className="grid gap-3">
-             {config?.users && config.users.length > 0 ? [...config.users].reverse().map((u: any) => (
-                <div key={u.id} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                  <div className="space-y-1 w-full sm:w-[calc(100%-120px)] overflow-hidden">
-                    <div className="flex flex-wrap items-center gap-2">
-                       <span className="font-mono text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded break-all">{u.ip}</span>
-                       <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">{new Date(u.lastActive).toLocaleString()}</span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-full break-all" title={u.userAgent}>{u.userAgent}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                     <div className="flex items-center gap-2 bg-[#1A1A1D] border border-white/5 px-3 py-1.5 rounded-lg">
-                        <div className="flex flex-col items-center">
-                           <span className="text-[10px] text-slate-500 font-bold">Terpakai</span>
-                           <span className={`text-sm font-bold ${u.dataLimit >= u.limit ? 'text-red-500' : 'text-emerald-500'}`}>{u.dataLimit}</span>
-                        </div>
-                        <span className="text-slate-600">/</span>
-                        <div className="flex flex-col items-center">
-                           <span className="text-[10px] text-slate-500 font-bold">Limit</span>
-                           <span className="text-sm font-bold text-white">{u.limit}</span>
-                        </div>
-                        <button onClick={() => handleUpdateLimit(u.id, u.limit)} className="ml-2 text-slate-400 hover:text-amber-500 p-1">
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <button onClick={() => {
-                          if (confirm("Blokir user ini? Limit mereka akan di-set ke 0 sehingga tidak bisa menonton.")) {
-                            handleUpdateLimit(u.id, 0);
-                          }
-                        }} title="Blokir User (Set limit ke 0)" className="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white p-2.5 rounded-xl border border-orange-500/20 hover:border-orange-500 transition-all">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                        </button>
-                        <button onClick={() => {
-                          if (confirm("Hapus riwayat user ini? (Mereka akan dianggap sebagai user baru dan mendapat jatah limit gratis lagi jika berkunjung kembali)")) {
-                            handleDeleteUser(u.id);
-                          }
-                        }} title="Hapus Riwayat (Akan mereset limit jika mereka datang lagi)" className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-2.5 rounded-xl border border-red-500/20 hover:border-red-500 transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                     </div>
-                  </div>
-                </div>
-             )) : (
-               <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
-                 <p className="text-slate-500 text-sm font-bold">Belum ada user yang tercatat.</p>
+           {activeRightTab === 'web' && (
+             <>
+               <div className="flex items-center justify-between mb-2">
+                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                   <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna
+                 </h2>
+                 <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                   Total: {config?.users?.length || 0}
+                 </div>
                </div>
-             )}
-           </div>
+               
+               <div className="grid gap-3">
+                 {config?.users && config.users.length > 0 ? [...config.users].reverse().map((u: any) => (
+                    <div key={u.id} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <div className="space-y-1 w-full sm:w-[calc(100%-120px)] overflow-hidden">
+                        <div className="flex flex-wrap items-center gap-2">
+                           <span className="font-mono text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded break-all">{u.ip}</span>
+                           <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">{new Date(u.lastActive).toLocaleString()}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-full break-all" title={u.userAgent}>{u.userAgent}</p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                         <div className="flex items-center gap-2 bg-[#1A1A1D] border border-white/5 px-3 py-1.5 rounded-lg">
+                            <div className="flex flex-col items-center">
+                               <span className="text-[10px] text-slate-500 font-bold">Terpakai</span>
+                               <span className={`text-sm font-bold ${u.dataLimit >= u.limit ? 'text-red-500' : 'text-emerald-500'}`}>{u.dataLimit}</span>
+                            </div>
+                            <span className="text-slate-600">/</span>
+                            <div className="flex flex-col items-center">
+                               <span className="text-[10px] text-slate-500 font-bold">Limit</span>
+                               <span className="text-sm font-bold text-white">{u.limit}</span>
+                            </div>
+                            <button onClick={() => handleUpdateLimit(u.id, u.limit)} className="ml-2 text-slate-400 hover:text-amber-500 p-1">
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                         </div>
+                         <div className="flex items-center gap-2">
+                            <button onClick={() => {
+                              if (confirm("Blokir user ini? Limit mereka akan di-set ke 0 sehingga tidak bisa menonton.")) {
+                                handleUpdateLimit(u.id, 0);
+                              }
+                            }} title="Blokir User (Set limit ke 0)" className="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white p-2.5 rounded-xl border border-orange-500/20 hover:border-orange-500 transition-all">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                            </button>
+                            <button onClick={() => {
+                              if (confirm("Hapus riwayat user ini? (Mereka akan dianggap sebagai user baru dan mendapat jatah limit gratis lagi jika berkunjung kembali)")) {
+                                handleDeleteUser(u.id);
+                              }
+                            }} title="Hapus Riwayat (Akan mereset limit jika mereka datang lagi)" className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-2.5 rounded-xl border border-red-500/20 hover:border-red-500 transition-all">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                         </div>
+                      </div>
+                    </div>
+                 )) : (
+                   <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
+                     <p className="text-slate-500 text-sm font-bold">Belum ada user yang tercatat.</p>
+                   </div>
+                 )}
+               </div>
+             </>
+           )}
+
+           {activeRightTab === 'bot' && (
+             <>
+               <div className="flex items-center justify-between mb-2">
+                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                   Riwayat Pengunjung Bot (/start)
+                 </h2>
+                 <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                   Total: {config?.botVisitors?.length || 0}
+                 </div>
+               </div>
+               
+               <div className="grid gap-3">
+                 {config?.botVisitors && config.botVisitors.length > 0 ? [...config.botVisitors].reverse().map((v: any, idx: number) => (
+                    <div key={`${v.id}-${idx}`} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between hover:bg-[#1C1C1F] transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10 text-xl font-bold text-slate-300">
+                           {v.firstName ? v.firstName.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div className="space-y-0.5">
+                           <h3 className="font-bold text-white text-sm">
+                             {v.firstName} {v.lastName || ''}
+                           </h3>
+                           <div className="flex flex-wrap items-center gap-2">
+                              {v.username && (
+                                <span className="text-xs font-medium text-amber-500">@{v.username}</span>
+                              )}
+                              <span className="text-[10px] font-mono text-slate-500 bg-black/20 px-1.5 py-0.5 rounded">ID: {v.id}</span>
+                           </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col sm:items-end gap-1 text-left sm:text-right w-full sm:w-auto">
+                        <span className="text-xs font-medium text-slate-400">Terakhir mengunjungi:</span>
+                        <span className="text-xs text-white">{new Date(v.visitedAt).toLocaleString()}</span>
+                      </div>
+                    </div>
+                 )) : (
+                   <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
+                     <p className="text-slate-500 text-sm font-bold">Belum ada pengunjung bot yang terekam.</p>
+                     <p className="text-slate-600 text-xs mt-2">Daftar ini akan otomatis terisi saat seseorang mengetik /start di bot Anda.</p>
+                   </div>
+                 )}
+               </div>
+             </>
+           )}
         </div>
 
       </div>

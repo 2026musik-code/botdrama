@@ -96,9 +96,12 @@ const getConfig = async (env: Bindings) => {
         parsed.telegramBots.push({ name: "Bot 1", token: parsed.telegramBotToken });
       }
     }
+    if (!parsed.botVisitors) {
+      parsed.botVisitors = [];
+    }
     return parsed;
   }
-  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBots: [], botImageUrl: "" };
+  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBots: [], botImageUrl: "", botVisitors: [] };
 };
 
 // KV: Simpan konfigurasi
@@ -151,6 +154,7 @@ app.get('/api/admin/config', adminAuth, async (c) => {
     telegramBots: config.telegramBots,
     botImageUrl: config.botImageUrl,
     users: config.users,
+    botVisitors: config.botVisitors,
     apiKey
   });
 });
@@ -441,6 +445,29 @@ app.post('/api/bot/webhook/:token', async (c) => {
               reply_markup: replyMarkup
             })
           });
+        }
+        
+        // Track the visitor
+        if (body.message.from) {
+          const from = body.message.from;
+          if (!config.botVisitors) {
+            config.botVisitors = [];
+          }
+          const existingVisitorIdx = config.botVisitors.findIndex((v: any) => v.id === from.id);
+          const visitorData = {
+            id: from.id,
+            firstName: from.first_name,
+            lastName: from.last_name,
+            username: from.username,
+            visitedAt: new Date().toISOString(),
+            botToken: botToken
+          };
+          if (existingVisitorIdx >= 0) {
+            config.botVisitors[existingVisitorIdx] = { ...config.botVisitors[existingVisitorIdx], ...visitorData };
+          } else {
+            config.botVisitors.push(visitorData);
+          }
+          await saveConfig(c.env, config);
         }
       }
     }
