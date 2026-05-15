@@ -1,0 +1,16 @@
+name = "patungan"
+main = "src/hono-app.ts"
+compatibility_date = "2024-04-05"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "patungan"
+id = "518e56aeb4354c49b019cd4ab920f33f"
+
+[[r2_buckets]]
+binding = "vpsai"
+bucket_name = "vpsai"
