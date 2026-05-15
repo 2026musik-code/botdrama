@@ -32,7 +32,7 @@ app.use('/api/*', async (c, next) => {
     // Pada environment dev (misal AI Studio mode iframe), referer bisa saja tidak dikirim.
     // Kita skip strict check referer ini jika requestnya ada user-agent dari browser umum.
     const ua = c.req.header('user-agent') || '';
-    if (!path.startsWith('/api/cors-proxy') && !path.startsWith('/api/admin') && !ua.includes('Mozilla')) {
+    if (!path.startsWith('/api/cors-proxy') && !path.startsWith('/api/admin') && !path.startsWith('/api/bot') && !ua.includes('Mozilla')) {
       return c.json({ error: "Access Denied: No Referer" }, 403);
     }
   }
