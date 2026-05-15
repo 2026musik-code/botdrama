@@ -88,8 +88,17 @@ app.use('/api/*', (c, next) => {
 // KV: Ambil konfigurasi (Users, Admin Password, Popup, Webhook)
 const getConfig = async (env: Bindings) => {
   const data = await env.patungan.get('config');
-  if (data) return JSON.parse(data);
-  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBotToken: "", botImageUrl: "" };
+  if (data) {
+    const parsed = JSON.parse(data);
+    if (!parsed.telegramBots) {
+      parsed.telegramBots = [];
+      if (parsed.telegramBotToken) {
+        parsed.telegramBots.push({ name: "Bot 1", token: parsed.telegramBotToken });
+      }
+    }
+    return parsed;
+  }
+  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBots: [], botImageUrl: "" };
 };
 
 // KV: Simpan konfigurasi
@@ -139,7 +148,7 @@ app.get('/api/admin/config', adminAuth, async (c) => {
   return c.json({
     popupText: config.popupText,
     qrImage: config.qrImage,
-    telegramBotToken: config.telegramBotToken,
+    telegramBots: config.telegramBots,
     botImageUrl: config.botImageUrl,
     users: config.users,
     apiKey
@@ -152,7 +161,7 @@ app.post('/api/admin/config', adminAuth, async (c) => {
   
   if (body.popupText !== undefined) config.popupText = body.popupText;
   if (body.qrImage !== undefined) config.qrImage = body.qrImage;
-  if (body.telegramBotToken !== undefined) config.telegramBotToken = body.telegramBotToken;
+  if (body.telegramBots !== undefined) config.telegramBots = body.telegramBots;
   if (body.botImageUrl !== undefined) config.botImageUrl = body.botImageUrl;
   
   await saveConfig(c.env, config);
@@ -356,10 +365,10 @@ app.get('/api/cors-proxy', async (c) => {
 
 app.get('/api/bot/set-webhook', async (c) => {
   const config = await getConfig(c.env);
-  const botToken = config.telegramBotToken;
+  const bots = config.telegramBots || [];
   
-  if (!botToken) {
-    return c.json({ error: "Telegram Bot Token is not set in Admin Panel!" }, 400);
+  if (bots.length === 0) {
+    return c.json({ error: "No Telegram Bots set in Admin Panel!" }, 400);
   }
 
   const url = new URL(c.req.url);
@@ -368,23 +377,31 @@ app.get('/api/bot/set-webhook', async (c) => {
   const proto = c.req.header('x-forwarded-proto') || 'https';
   const host = c.req.header('x-forwarded-host') || url.host;
   
-  const webhookUrl = `${proto}://${host}/api/bot/webhook`;
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
-    const data = await res.json();
-    return c.json({ webhookUrl, data });
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
+  const results = [];
+  
+  for (const bot of bots) {
+    const webhookUrl = `${proto}://${host}/api/bot/webhook/${bot.token}`;
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${bot.token}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+      const data = await res.json();
+      results.push({ name: bot.name, webhookUrl, data });
+    } catch (err: any) {
+      results.push({ name: bot.name, error: err.message });
+    }
   }
+  
+  return c.json({ results });
 });
 
-app.post('/api/bot/webhook', async (c) => {
+app.post('/api/bot/webhook/:token', async (c) => {
   try {
+    const botToken = c.req.param('token');
     const config = await getConfig(c.env);
-    const botToken = config.telegramBotToken;
     
-    if (!botToken) {
+    const bots = config.telegramBots || [];
+    const isValidBot = bots.some((b: any) => b.token === botToken);
+    
+    if (!isValidBot) {
       return c.text('OK');
     }
 

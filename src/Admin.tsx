@@ -13,7 +13,7 @@ export default function Admin() {
   const [popupText, setPopupText] = useState('');
   const [qrImage, setQrImage] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramBots, setTelegramBots] = useState<{name: string, token: string}[]>([]);
   const [botImageUrl, setBotImageUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   
@@ -31,7 +31,7 @@ export default function Admin() {
         setPopupText(data.popupText || '');
         setQrImage(data.qrImage || '');
         setApiKey(data.apiKey || '');
-        setTelegramBotToken(data.telegramBotToken || '');
+        setTelegramBots(data.telegramBots || []);
         setBotImageUrl(data.botImageUrl || '');
         setAuthenticated(true);
       } else {
@@ -57,7 +57,7 @@ export default function Admin() {
           'Content-Type': 'application/json',
           'x-admin-password': password
         },
-        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBotToken, botImageUrl })
+        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBots, botImageUrl })
       });
       if (res.ok) {
         alert('Pengaturan berhasil disimpan');
@@ -252,16 +252,58 @@ export default function Admin() {
                  />
                </div>
                <div>
-                 <label className="text-xs font-bold text-slate-400 mb-1 block">Telegram Bot Token (Disimpan di KV)</label>
-                 <input 
-                   type="text" 
-                   value={telegramBotToken}
-                   onChange={e => setTelegramBotToken(e.target.value)}
-                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
-                   placeholder="Masukkan Telegram Bot Token (Misal: 7262943555:AAGU3...)"
-                 />
+                 <label className="text-xs font-bold text-slate-400 mb-1 block">Telegram Bots (Disimpan di KV)</label>
+                 
+                 <div className="space-y-3 mb-4">
+                   {telegramBots.map((bot, index) => (
+                     <div key={index} className="flex gap-2 items-center bg-white/5 p-3 rounded-xl border border-white/10">
+                        <div className="flex-1 space-y-2">
+                          <input 
+                            type="text" 
+                            value={bot.name}
+                            onChange={e => {
+                              const newBots = [...telegramBots];
+                              newBots[index].name = e.target.value;
+                              setTelegramBots(newBots);
+                            }}
+                            className="w-full bg-[#1A1A1D] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                            placeholder="Nama Bot"
+                          />
+                          <input 
+                            type="text" 
+                            value={bot.token}
+                            onChange={e => {
+                              const newBots = [...telegramBots];
+                              newBots[index].token = e.target.value;
+                              setTelegramBots(newBots);
+                            }}
+                            className="w-full bg-[#1A1A1D] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                            placeholder="Bot Token (Misal: 726...)"
+                          />
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const newBots = telegramBots.filter((_, i) => i !== index);
+                            setTelegramBots(newBots);
+                          }}
+                          className="bg-red-500/20 hover:bg-red-500/40 text-red-500 p-3 rounded-xl transition-colors"
+                          title="Hapus Bot"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                     </div>
+                   ))}
+                   
+                   <button 
+                    onClick={() => setTelegramBots([...telegramBots, { name: 'Bot Baru', token: '' }])}
+                    className="w-full py-2 border border-dashed border-white/20 rounded-xl text-slate-400 hover:text-white hover:border-white/50 transition-colors text-sm"
+                   >
+                     + Tambah Bot
+                   </button>
+                 </div>
+
                  <small className="text-slate-500 text-xs mt-1 block mb-4">
-                   Setelah menyimpan token, jalankan url <code>/api/bot/set-webhook</code> di browser untuk mengaktifkan webhook.
+                   Setelah menyimpan info bot, jalankan url <code>/api/bot/set-webhook</code> di browser untuk mengaktifkan webhook semua bot di atas.
                  </small>
                </div>
                <div>
