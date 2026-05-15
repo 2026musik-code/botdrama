@@ -5,13 +5,10 @@ class BotManager {
   private token: string | null = null;
 
   constructor() {
-    this.token = process.env.TELEGRAM_BOT_TOKEN || null;
-    // Disable auto-starting to prevent polling conflict with Cloudflare Webhooks
-    /*
+    this.token = process.env.TELEGRAM_BOT_TOKEN || "7262943555:AAGU3vo2GiyJmrbvDlOmZzWAx6EwthcMrLg";
     if (this.token) {
       this.initBot(this.token);
     }
-    */
   }
 
   public initBot(token: string) {
