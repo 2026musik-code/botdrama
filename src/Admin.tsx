@@ -293,8 +293,16 @@ export default function Admin() {
                    className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
                  />
                  {qrImage && (
-                   <div className="mt-3 bg-white p-2 w-32 h-32 rounded-xl border border-slate-600">
-                     <img src={qrImage} alt="QR Code Preview" className="w-full h-full object-contain" />
+                   <div className="mt-3 flex flex-col items-start gap-2 mb-4">
+                     <div className="bg-white p-2 w-32 h-32 rounded-xl border border-slate-600">
+                       <img src={qrImage} alt="QR Code Preview" className="w-full h-full object-contain" />
+                     </div>
+                     <button
+                       onClick={() => setQrImage('')}
+                       className="bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-500/20 text-xs font-bold flex items-center gap-2 transition-colors"
+                     >
+                       <Trash2 className="w-3 h-3" /> Hapus QR
+                     </button>
                    </div>
                  )}
                </div>
@@ -388,8 +396,16 @@ export default function Admin() {
                    className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
                  />
                  {botImageUrl && (
-                   <div className="mt-3 bg-white p-2 w-32 h-32 rounded-xl border border-slate-600 mb-4">
-                     <img src={botImageUrl} alt="Bot Image Preview" className="w-full h-full object-contain" />
+                   <div className="mt-3 flex flex-col items-start gap-2 mb-4">
+                     <div className="bg-white p-2 w-32 h-32 rounded-xl border border-slate-600">
+                       <img src={botImageUrl} alt="Bot Image Preview" className="w-full h-full object-contain" />
+                     </div>
+                     <button
+                       onClick={() => setBotImageUrl('')}
+                       className="bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-500/20 text-xs font-bold flex items-center gap-2 transition-colors"
+                     >
+                       <Trash2 className="w-3 h-3" /> Hapus Gambar
+                     </button>
                    </div>
                  )}
                </div>
