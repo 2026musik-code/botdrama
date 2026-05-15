@@ -19,7 +19,7 @@ export default function Admin() {
   const [botAppUrl, setBotAppUrl] = useState('');
   const [botWaUrl, setBotWaUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [activeRightTab, setActiveRightTab] = useState<'web' | 'bot'>('web');
+  const [activeTab, setActiveTab] = useState<'web' | 'bot'>('web');
   const [broadcastText, setBroadcastText] = useState('');
   const [broadcasting, setBroadcasting] = useState(false);
   
@@ -353,15 +353,36 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+        <div className="flex gap-2 p-1 bg-[#161618] border border-white/5 rounded-xl max-w-sm">
+          <button 
+            onClick={() => setActiveTab('web')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'web' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Users className="w-4 h-4" /> Sistem Web
+          </button>
+          <button 
+            onClick={() => setActiveTab('bot')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'bot' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+            Sistem Bot
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Col - Settings */}
+        
+        {activeTab === 'web' && (
         <div className="space-y-6">
           <div className="bg-[#161618] rounded-2xl border border-white/5 p-5">
              <h2 className="text-white font-bold mb-4 flex items-center gap-2">
                <Activity className="w-4 h-4 text-amber-500" /> Pengaturan Limit & Popup
              </h2>
              <div className="space-y-4">
+               
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Teks Popup saat limit habis</label>
                  <textarea 
@@ -405,6 +426,41 @@ export default function Admin() {
                    placeholder="Masukkan API Key yang baru"
                  />
                </div>
+               
+               <button onClick={handleSaveConfig} className="w-full flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold py-3 rounded-xl transition-colors border border-amber-500/20">
+                 <Save className="w-4 h-4" /> Simpan Pengaturan Web
+               </button>
+             </div>
+          </div>
+
+          <div className="bg-[#161618] rounded-2xl border border-white/5 p-5">
+             <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+               <Key className="w-4 h-4 text-amber-500" /> Ganti Kata Sandi Admin
+             </h2>
+             <div className="space-y-4">
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Kata Sandi Baru"
+                  className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                />
+                <button onClick={handleUpdatePassword} className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold py-3 rounded-xl transition-colors border border-red-500/20">
+                  Ubah Kata Sandi
+                </button>
+             </div>
+          </div>
+        </div>
+        )}
+
+        {activeTab === 'bot' && (
+        <div className="space-y-6">
+          <div className="bg-[#161618] rounded-2xl border border-white/5 p-5">
+             <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+               Pengaturan Bot
+             </h2>
+             <div className="space-y-4">
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Telegram Bots (Disimpan di KV)</label>
                  
@@ -474,7 +530,6 @@ export default function Admin() {
                    Setelah menyimpan info bot, klik tombol <b>Daftarkan Webhook</b> di atas untuk menyambungkan bot ke sistem web ini.
                  </small>
                </div>
-               
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Teks Sambutan Pendaftaran Bot (/start)</label>
                  <textarea 
@@ -528,206 +583,170 @@ export default function Admin() {
                    </div>
                  )}
                </div>
-               <button onClick={handleSaveConfig} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition-colors border border-white/10">
-                 <Save className="w-4 h-4" /> Simpan Pengaturan
+               <button onClick={handleSaveConfig} className="w-full flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 font-bold py-3 rounded-xl transition-colors border border-emerald-500/20">
+                 <Save className="w-4 h-4" /> Simpan Pengaturan Bot
                </button>
              </div>
           </div>
+        </div>
+        )}
 
-          <div className="bg-[#161618] rounded-2xl border border-white/5 p-5">
-             <h2 className="text-white font-bold mb-4 flex items-center gap-2">
-               <Key className="w-4 h-4 text-amber-500" /> Ganti Kata Sandi Admin
-             </h2>
-             <div className="space-y-4">
-                <input 
-                  type="password" 
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  placeholder="Kata Sandi Baru"
-                  className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
-                />
-                <button onClick={handleUpdatePassword} className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 font-bold py-3 rounded-xl transition-colors border border-red-500/20">
-                  Ubah Kata Sandi
-                </button>
+
+        {activeTab === 'web' && (
+          <div className="lg:col-span-2 space-y-4">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 bg-[#161618] border border-white/5 p-4 rounded-2xl">
+               <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                 <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna Web
+               </h2>
+               <div className="flex items-center gap-3">
+                 <button 
+                   onClick={exportWebVisitorsCSV}
+                   className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+                 >
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                   Export CSV
+                 </button>
+                 <div className="text-xs font-bold bg-[#1A1A1D] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                   Total: {config?.users?.length || 0}
+                 </div>
+               </div>
+             </div>
+             
+             <div className="grid gap-3">
+               {config?.users && config.users.length > 0 ? [...config.users].reverse().map((u: any) => (
+                  <div key={u.id} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div className="space-y-1 w-full sm:w-[calc(100%-120px)] overflow-hidden">
+                      <div className="flex flex-wrap items-center gap-2">
+                         <span className="font-mono text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded break-all">{u.ip}</span>
+                         {u.limit === 0 && (
+                           <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded uppercase">Banned</span>
+                         )}
+                         <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">{new Date(u.lastActive).toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-full break-all" title={u.userAgent}>{u.userAgent}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                       <div className="flex items-center gap-2 bg-[#1A1A1D] border border-white/5 px-3 py-1.5 rounded-lg">
+                          <div className="flex flex-col items-center">
+                             <span className="text-[10px] text-slate-500 font-bold">Terpakai</span>
+                             <span className={`text-sm font-bold ${u.dataLimit >= u.limit ? 'text-red-500' : 'text-emerald-500'}`}>{u.dataLimit}</span>
+                          </div>
+                          <span className="text-slate-600">/</span>
+                          <div className="flex flex-col items-center">
+                             <span className="text-[10px] text-slate-500 font-bold">Limit</span>
+                             <span className="text-sm font-bold text-white">{u.limit}</span>
+                          </div>
+                          <button onClick={() => handleUpdateLimit(u.id, u.limit)} className="ml-2 text-slate-400 hover:text-amber-500 p-1">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          <button onClick={() => {
+                            if (confirm("Blokir user ini? Limit mereka akan di-set ke 0 sehingga tidak bisa menonton.")) {
+                              handleUpdateLimit(u.id, 0);
+                            }
+                          }} title="Blokir User (Set limit ke 0)" className="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white p-2.5 rounded-xl border border-orange-500/20 hover:border-orange-500 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                          </button>
+                          <button onClick={() => {
+                            if (confirm("Hapus riwayat user ini? (Mereka akan dianggap sebagai user baru dan mendapat jatah limit gratis lagi jika berkunjung kembali)")) {
+                              handleDeleteUser(u.id);
+                            }
+                          }} title="Hapus Riwayat (Akan mereset limit jika mereka datang lagi)" className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-2.5 rounded-xl border border-red-500/20 hover:border-red-500 transition-all">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                       </div>
+                    </div>
+                  </div>
+               )) : (
+                 <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
+                   <p className="text-slate-500 text-sm font-bold">Belum ada user yang tercatat.</p>
+                 </div>
+               )}
              </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Col - Users/Bot Visitors */}
-        <div className="lg:col-span-2 space-y-4">
-           
-           <div className="flex gap-2 p-1 bg-[#161618] border border-white/5 rounded-xl">
-             <button 
-               onClick={() => setActiveRightTab('web')}
-               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeRightTab === 'web' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
-             >
-               <Users className="w-4 h-4" /> Pengguna Web
-             </button>
-             <button 
-               onClick={() => setActiveRightTab('bot')}
-               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeRightTab === 'bot' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
-             >
-               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-               Pengunjung Bot
-             </button>
-           </div>
-           
-           {activeRightTab === 'web' && (
-             <>
-               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                   <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna Web
-                 </h2>
-                 <div className="flex items-center gap-3">
-                   <button 
-                     onClick={exportWebVisitorsCSV}
-                     className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
-                   >
-                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                     Export CSV
-                   </button>
-                   <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
-                     Total: {config?.users?.length || 0}
-                   </div>
-                 </div>
-               </div>
-               
-               <div className="grid gap-3">
-                 {config?.users && config.users.length > 0 ? [...config.users].reverse().map((u: any) => (
-                    <div key={u.id} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                      <div className="space-y-1 w-full sm:w-[calc(100%-120px)] overflow-hidden">
+        {activeTab === 'bot' && (
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-[#161618] border border-white/5 p-5 rounded-2xl mb-6">
+              <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+                <Send className="w-5 h-5 text-emerald-500" /> Broadcast Pesan
+              </h2>
+              <p className="text-xs text-slate-400 mb-3">Kirim pesan massal ke semua pengunjung yang pernah berinteraksi (/start) dengan bot.</p>
+              <div className="flex flex-col gap-3">
+                <textarea
+                  rows={3}
+                  value={broadcastText}
+                  onChange={e => setBroadcastText(e.target.value)}
+                  className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
+                  placeholder="Ketik pesan broadcast disini..."
+                />
+                <button 
+                  onClick={handleBroadcast} 
+                  disabled={broadcasting}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                >
+                  {broadcasting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {broadcasting ? 'Mengirim...' : 'Kirim Broadcast Sekarang'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 bg-[#161618] border border-white/5 p-4 rounded-2xl">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                Riwayat Pengunjung Bot (/start)
+              </h2>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={exportBotVisitorsCSV}
+                  className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  Export CSV
+                </button>
+                <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                  Total: {config?.botVisitors?.length || 0}
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid gap-3">
+              {config?.botVisitors && config.botVisitors.length > 0 ? [...config.botVisitors].reverse().map((v: any, idx: number) => (
+                 <div key={`${v.id}-${idx}`} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between hover:bg-[#1C1C1F] transition-colors">
+                   <div className="flex items-center gap-4">
+                     <div className="flex-shrink-0 w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10 text-xl font-bold text-slate-300">
+                        {v.firstName ? v.firstName.charAt(0).toUpperCase() : '?'}
+                     </div>
+                     <div className="space-y-0.5">
+                        <h3 className="font-bold text-white text-sm">
+                          {v.firstName} {v.lastName || ''}
+                        </h3>
                         <div className="flex flex-wrap items-center gap-2">
-                           <span className="font-mono text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded break-all">{u.ip}</span>
-                           {u.limit === 0 && (
-                             <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded uppercase">Banned</span>
+                           {v.username && (
+                             <span className="text-xs font-medium text-amber-500">@{v.username}</span>
                            )}
-                           <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">{new Date(u.lastActive).toLocaleString()}</span>
+                           <span className="text-[10px] font-mono text-slate-500 bg-black/20 px-1.5 py-0.5 rounded">ID: {v.id}</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-full break-all" title={u.userAgent}>{u.userAgent}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                         <div className="flex items-center gap-2 bg-[#1A1A1D] border border-white/5 px-3 py-1.5 rounded-lg">
-                            <div className="flex flex-col items-center">
-                               <span className="text-[10px] text-slate-500 font-bold">Terpakai</span>
-                               <span className={`text-sm font-bold ${u.dataLimit >= u.limit ? 'text-red-500' : 'text-emerald-500'}`}>{u.dataLimit}</span>
-                            </div>
-                            <span className="text-slate-600">/</span>
-                            <div className="flex flex-col items-center">
-                               <span className="text-[10px] text-slate-500 font-bold">Limit</span>
-                               <span className="text-sm font-bold text-white">{u.limit}</span>
-                            </div>
-                            <button onClick={() => handleUpdateLimit(u.id, u.limit)} className="ml-2 text-slate-400 hover:text-amber-500 p-1">
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                         </div>
-                         <div className="flex items-center gap-2">
-                            <button onClick={() => {
-                              if (confirm("Blokir user ini? Limit mereka akan di-set ke 0 sehingga tidak bisa menonton.")) {
-                                handleUpdateLimit(u.id, 0);
-                              }
-                            }} title="Blokir User (Set limit ke 0)" className="bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white p-2.5 rounded-xl border border-orange-500/20 hover:border-orange-500 transition-all">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                            </button>
-                            <button onClick={() => {
-                              if (confirm("Hapus riwayat user ini? (Mereka akan dianggap sebagai user baru dan mendapat jatah limit gratis lagi jika berkunjung kembali)")) {
-                                handleDeleteUser(u.id);
-                              }
-                            }} title="Hapus Riwayat (Akan mereset limit jika mereka datang lagi)" className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white p-2.5 rounded-xl border border-red-500/20 hover:border-red-500 transition-all">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                         </div>
-                      </div>
-                    </div>
-                 )) : (
-                   <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
-                     <p className="text-slate-500 text-sm font-bold">Belum ada user yang tercatat.</p>
+                     </div>
                    </div>
-                 )}
-               </div>
-             </>
-           )}
-
-           {activeRightTab === 'bot' && (
-             <>
-               <div className="bg-[#161618] border border-white/5 p-5 rounded-2xl mb-6">
-                 <h2 className="text-white font-bold mb-4 flex items-center gap-2">
-                   <Send className="w-5 h-5 text-emerald-500" /> Broadcast Pesan
-                 </h2>
-                 <p className="text-xs text-slate-400 mb-3">Kirim pesan massal ke semua pengunjung yang pernah berinteraksi (/start) dengan bot.</p>
-                 <div className="flex flex-col gap-3">
-                   <textarea
-                     rows={3}
-                     value={broadcastText}
-                     onChange={e => setBroadcastText(e.target.value)}
-                     className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
-                     placeholder="Ketik pesan broadcast disini..."
-                   />
-                   <button 
-                     onClick={handleBroadcast} 
-                     disabled={broadcasting}
-                     className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-                   >
-                     {broadcasting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                     {broadcasting ? 'Mengirim...' : 'Kirim Broadcast Sekarang'}
-                   </button>
-                 </div>
-               </div>
-
-               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-                   Riwayat Pengunjung Bot (/start)
-                 </h2>
-                 <div className="flex items-center gap-3">
-                   <button 
-                     onClick={exportBotVisitorsCSV}
-                     className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
-                   >
-                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                     Export CSV
-                   </button>
-                   <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
-                     Total: {config?.botVisitors?.length || 0}
+                   
+                   <div className="flex flex-col sm:items-end gap-1 text-left sm:text-right w-full sm:w-auto">
+                     <span className="text-xs font-medium text-slate-400">Terakhir mengunjungi:</span>
+                     <span className="text-xs text-white">{new Date(v.visitedAt).toLocaleString()}</span>
                    </div>
                  </div>
-               </div>
-               
-               <div className="grid gap-3">
-                 {config?.botVisitors && config.botVisitors.length > 0 ? [...config.botVisitors].reverse().map((v: any, idx: number) => (
-                    <div key={`${v.id}-${idx}`} className="bg-[#161618] border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between hover:bg-[#1C1C1F] transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 bg-white/5 rounded-full flex items-center justify-center border border-white/10 text-xl font-bold text-slate-300">
-                           {v.firstName ? v.firstName.charAt(0).toUpperCase() : '?'}
-                        </div>
-                        <div className="space-y-0.5">
-                           <h3 className="font-bold text-white text-sm">
-                             {v.firstName} {v.lastName || ''}
-                           </h3>
-                           <div className="flex flex-wrap items-center gap-2">
-                              {v.username && (
-                                <span className="text-xs font-medium text-amber-500">@{v.username}</span>
-                              )}
-                              <span className="text-[10px] font-mono text-slate-500 bg-black/20 px-1.5 py-0.5 rounded">ID: {v.id}</span>
-                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col sm:items-end gap-1 text-left sm:text-right w-full sm:w-auto">
-                        <span className="text-xs font-medium text-slate-400">Terakhir mengunjungi:</span>
-                        <span className="text-xs text-white">{new Date(v.visitedAt).toLocaleString()}</span>
-                      </div>
-                    </div>
-                 )) : (
-                   <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
-                     <p className="text-slate-500 text-sm font-bold">Belum ada pengunjung bot yang terekam.</p>
-                     <p className="text-slate-600 text-xs mt-2">Daftar ini akan otomatis terisi saat seseorang mengetik /start di bot Anda.</p>
-                   </div>
-                 )}
-               </div>
-             </>
-           )}
-        </div>
+              )) : (
+                <div className="text-center py-10 bg-[#161618] rounded-2xl border border-white/5">
+                  <p className="text-slate-500 text-sm font-bold">Belum ada pengunjung bot yang terekam.</p>
+                  <p className="text-slate-600 text-xs mt-2">Daftar ini akan otomatis terisi saat seseorang mengetik /start di bot Anda.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
