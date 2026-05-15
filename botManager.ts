@@ -5,10 +5,13 @@ class BotManager {
   private token: string | null = null;
 
   constructor() {
-    this.token = process.env.TELEGRAM_BOT_TOKEN || "7262943555:AAGU3vo2GiyJmrbvDlOmZzWAx6EwthcMrLg";
+    this.token = process.env.TELEGRAM_BOT_TOKEN || null;
+    // Disable auto-starting to prevent polling conflict with Cloudflare Webhooks
+    /*
     if (this.token) {
       this.initBot(this.token);
     }
+    */
   }
 
   public initBot(token: string) {
@@ -22,9 +25,14 @@ class BotManager {
     this.bot.start(async (ctx) => {
       // Use the preview URL instead of github pages which is 404
       const appUrl = "https://id.vipcf.workers.dev";
-      return ctx.reply("Selamat datang! Klik tombol di bawah ini untuk membuka aplikasi.", 
+      const messageText = "selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini";
+      
+      // Jika butuh mengakses konfigurasi CF KV secara live untuk membaca botImageUrl, 
+      // bot lokal ini mungkin tidak menampilkannya otomatis. Diutamakan lewat Webhook CF.
+      return ctx.reply(messageText, 
         Markup.inlineKeyboard([
-          Markup.button.webApp("📱 BUKA APLIKASI", appUrl)
+          [Markup.button.webApp("📱 BUKA APLIKASI", appUrl)],
+          [Markup.button.url("Bergabung ke group WhatsApp", "https://chat.whatsapp.com/FfMt4vbJQGfJGvEVdurhP6")]
         ])
       );
     });
