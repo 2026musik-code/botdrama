@@ -3,7 +3,6 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
 import honoApp from "./src/hono-app.ts"; 
-import { botManager } from "./botManager.ts";
 
 // --- SIMULASI CLOUDFLARE KV & R2 UNTUK AI STUDIO ---
 // Di Cloudflare Workers, ini disediakan lewat environment bindings
@@ -64,28 +63,6 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json({ limit: "10mb" }));
-
-  // Bot API Endpoints must come BEFORE the wildcard /api/* route
-  app.get('/api/bot/status', (req, res) => {
-    res.json(botManager.getStatus());
-  });
-
-  app.post('/api/bot/start', (req, res) => {
-    try {
-      const token = req.body.token || process.env.TELEGRAM_BOT_TOKEN;
-      if (!token) return res.status(400).json({ success: false, error: "Token not provided" });
-      
-      const success = botManager.startBot(token);
-      res.json({ success });
-    } catch (e: any) {
-      res.status(500).json({ success: false, error: e.message });
-    }
-  });
-
-  app.post('/api/bot/stop', (req, res) => {
-    const success = botManager.stopBot();
-    res.json({ success });
-  });
 
   // ALL /api requests dirutekan ke Hono App
   app.all('/api/*', async (req, res) => {
