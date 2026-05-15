@@ -453,16 +453,47 @@ app.post('/api/bot/webhook/:token', async (c) => {
         
         try {
           if (config.botImageUrl) {
-            await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                chat_id: chatId,
-                photo: config.botImageUrl,
-                caption: messageText,
-                reply_markup: replyMarkup
-              })
-            });
+            let res;
+            if (config.botImageUrl.startsWith('data:image')) {
+              const form = new FormData();
+              
+              // Extract base64
+              const [header, base64] = config.botImageUrl.split(',');
+              const mimeMatch = header.match(/:(.*?);/);
+              const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+              const binary = atob(base64);
+              const array = new Uint8Array(binary.length);
+              for (let i = 0; i < binary.length; i++) {
+                array[i] = binary.charCodeAt(i);
+              }
+              const blob = new Blob([array], { type: mime });
+              
+              form.append('chat_id', chatId.toString());
+              form.append('photo', blob, 'image.png');
+              form.append('caption', messageText);
+              form.append('reply_markup', JSON.stringify(replyMarkup));
+              
+              res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: 'POST',
+                body: form
+              });
+            } else {
+              res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: chatId,
+                  photo: config.botImageUrl,
+                  caption: messageText,
+                  reply_markup: replyMarkup
+                })
+              });
+            }
+            
+            if (!res.ok) {
+              console.error("sendPhoto failed, falling back to sendMessage", await res.text());
+              throw new Error("sendPhoto failed");
+            }
           } else {
             await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
               method: 'POST',
@@ -475,7 +506,16 @@ app.post('/api/bot/webhook/:token', async (c) => {
             });
           }
         } catch(e) {
-          console.error("Failed to send bot response", e);
+          console.error("Failed to send bot photo, falling back...", e);
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: messageText,
+              reply_markup: replyMarkup
+            })
+          });
         }
       }
     }
