@@ -35,10 +35,24 @@ export default function Admin() {
         const data = await res.json();
         setConfig(data);
         setPopupText(data.popupText || '');
-        setQrImage(data.qrImage || '');
+        
+        if (data.qrImage && data.qrImage.length > 1000000) {
+          setQrImage('');
+          alert("Sistem mendeteksi gambar QR sebelumnya terlalu besar (bisa menyebabkan lag/crash). Silakan upload ulang gambar berukuran kecil.");
+        } else {
+          setQrImage(data.qrImage || '');
+        }
+
         setApiKey(data.apiKey || '');
         setTelegramBots(data.telegramBots || []);
-        setBotImageUrl(data.botImageUrl || '');
+
+        if (data.botImageUrl && data.botImageUrl.length > 1000000) {
+          setBotImageUrl('');
+          alert("Sistem mendeteksi gambar Bot sebelumnya terlalu besar. Silakan upload ulang.");
+        } else {
+          setBotImageUrl(data.botImageUrl || '');
+        }
+
         setBotWelcomeText(data.botWelcomeText || '');
         setBotAppUrl(data.botAppUrl || '');
         setBotWaUrl(data.botWaUrl || '');
@@ -137,25 +151,58 @@ export default function Admin() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setQrImage(reader.result as string);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_DIM = 800;
+
+          if (width > height) {
+            if (width > MAX_DIM) {
+              height *= MAX_DIM / width;
+              width = MAX_DIM;
+            }
+          } else {
+            if (height > MAX_DIM) {
+              width *= MAX_DIM / height;
+              height = MAX_DIM;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = e.target?.result as string;
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        const compressed = await compressImage(file);
+        setQrImage(compressed);
+      }
     }
   };
 
-  const handleBotImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBotImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBotImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file.type.startsWith('image/')) {
+        const compressed = await compressImage(file);
+        setBotImageUrl(compressed);
+      }
     }
   };
 
@@ -395,9 +442,9 @@ export default function Admin() {
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">QR Code (Upload/Base64/URL)</label>
                  <input type="file" accept="image/*" onChange={handleImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
-                 {qrImage.length > 200 && qrImage.startsWith('data:image/') ? (
-                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white/50 text-sm font-mono truncate">
-                     [Base64 Image Data]
+                 {qrImage.length > 200 ? (
+                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-emerald-500/80 text-sm font-mono truncate">
+                     ✓ Gambar Custom Terpasang
                    </div>
                  ) : (
                    <input 
@@ -568,9 +615,9 @@ export default function Admin() {
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Gambar Bot /start (Upload/Base64/URL)</label>
                  <input type="file" accept="image/*" onChange={handleBotImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
-                 {botImageUrl.length > 200 && botImageUrl.startsWith('data:image/') ? (
-                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white/50 text-sm font-mono truncate mb-4">
-                     [Base64 Image Data]
+                 {botImageUrl.length > 200 ? (
+                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-emerald-500/80 text-sm font-mono truncate mb-4">
+                     ✓ Gambar Custom Terpasang
                    </div>
                  ) : (
                    <input 
