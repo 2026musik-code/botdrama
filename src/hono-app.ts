@@ -209,6 +209,43 @@ app.post('/api/admin/users/:id', adminAuth, async (c) => {
   return c.json({ error: "User not found" }, 404);
 });
 
+app.post('/api/admin/bot/broadcast', adminAuth, async (c) => {
+  const body = await c.req.json();
+  const config = await getConfig(c.env);
+  
+  if (!body.text || typeof body.text !== 'string') {
+    return c.json({ error: "Pesan tidak valid" }, 400);
+  }
+
+  const visitors = config.botVisitors || [];
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const visitor of visitors) {
+    if (visitor.id && visitor.botToken) {
+       try {
+         const res = await fetch(`https://api.telegram.org/bot${visitor.botToken}/sendMessage`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({
+             chat_id: visitor.id,
+             text: body.text
+           })
+         });
+         if (res.ok) {
+           successCount++;
+         } else {
+           failCount++;
+         }
+       } catch (e) {
+         failCount++;
+       }
+    }
+  }
+
+  return c.json({ success: true, sent: successCount, failed: failCount });
+});
+
 app.post('/api/track', async (c) => {
   const body = await c.req.json();
   const deviceId = body.deviceId;

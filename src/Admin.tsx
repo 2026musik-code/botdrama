@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Settings, Users, Key, Trash2, Save, LogOut, Search, Activity, Edit2, RefreshCw } from 'lucide-react';
+import { Settings, Users, Key, Trash2, Save, LogOut, Search, Activity, Edit2, RefreshCw, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Admin() {
@@ -17,6 +17,8 @@ export default function Admin() {
   const [botImageUrl, setBotImageUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [activeRightTab, setActiveRightTab] = useState<'web' | 'bot'>('web');
+  const [broadcastText, setBroadcastText] = useState('');
+  const [broadcasting, setBroadcasting] = useState(false);
   
   const navigate = useNavigate();
 
@@ -196,6 +198,37 @@ export default function Admin() {
       }
     } catch (e: any) {
       alert('Error: ' + e.message);
+    }
+  };
+
+  const handleBroadcast = async () => {
+    if (!broadcastText.trim()) {
+      alert('Pesan broadcast tidak boleh kosong!');
+      return;
+    }
+    if (!confirm('Yakin ingin mengirim pesan massal ini ke semua pengunjung bot?')) return;
+    
+    setBroadcasting(true);
+    try {
+      const res = await fetch('/api/admin/bot/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password
+        },
+        body: JSON.stringify({ text: broadcastText })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Broadcast Selesai!\nBerhasil terkirim: ${data.sent}\nGagal terkirim: ${data.failed}`);
+        setBroadcastText(''); // clear on success
+      } else {
+        alert('Broadcast gagal: ' + (data.error || 'Unknown error'));
+      }
+    } catch (e: any) {
+      alert('Error: ' + e.message);
+    } finally {
+      setBroadcasting(false);
     }
   };
 
@@ -470,6 +503,9 @@ export default function Admin() {
                       <div className="space-y-1 w-full sm:w-[calc(100%-120px)] overflow-hidden">
                         <div className="flex flex-wrap items-center gap-2">
                            <span className="font-mono text-sm font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded break-all">{u.ip}</span>
+                           {u.limit === 0 && (
+                             <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded uppercase">Banned</span>
+                           )}
                            <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">{new Date(u.lastActive).toLocaleString()}</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-full break-all" title={u.userAgent}>{u.userAgent}</p>
@@ -519,6 +555,30 @@ export default function Admin() {
 
            {activeRightTab === 'bot' && (
              <>
+               <div className="bg-[#161618] border border-white/5 p-5 rounded-2xl mb-6">
+                 <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+                   <Send className="w-5 h-5 text-emerald-500" /> Broadcast Pesan
+                 </h2>
+                 <p className="text-xs text-slate-400 mb-3">Kirim pesan massal ke semua pengunjung yang pernah berinteraksi (/start) dengan bot.</p>
+                 <div className="flex flex-col gap-3">
+                   <textarea
+                     rows={3}
+                     value={broadcastText}
+                     onChange={e => setBroadcastText(e.target.value)}
+                     className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500 resize-none leading-relaxed"
+                     placeholder="Ketik pesan broadcast disini..."
+                   />
+                   <button 
+                     onClick={handleBroadcast} 
+                     disabled={broadcasting}
+                     className="bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                   >
+                     {broadcasting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                     {broadcasting ? 'Mengirim...' : 'Kirim Broadcast Sekarang'}
+                   </button>
+                 </div>
+               </div>
+
                <div className="flex items-center justify-between mb-2">
                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
