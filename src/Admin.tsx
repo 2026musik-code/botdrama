@@ -217,9 +217,17 @@ export default function Admin() {
             </p>
           </div>
         </div>
-        <button onClick={() => navigate('/')} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
-           <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Keluar</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => loadConfig(password)} disabled={loading} className="text-amber-500 hover:text-amber-400 flex items-center gap-2 text-sm font-bold bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-xl transition-colors">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> <span className="hidden md:inline">{loading ? 'Memuat...' : 'Refresh Data'}</span>
+          </button>
+          <button onClick={() => {
+              setAuthenticated(false);
+              setPassword('');
+            }} className="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
+             <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Keluar</span>
+          </button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
