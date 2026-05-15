@@ -415,6 +415,33 @@ app.post('/api/bot/webhook/:token', async (c) => {
       const chatId = body.message.chat.id;
 
       if (text.startsWith('/start')) {
+        // Track the visitor before responding
+        if (body.message.from) {
+          try {
+            const from = body.message.from;
+            if (!config.botVisitors) {
+              config.botVisitors = [];
+            }
+            const existingVisitorIdx = config.botVisitors.findIndex((v: any) => v.id === from.id);
+            const visitorData = {
+              id: from.id,
+              firstName: from.first_name,
+              lastName: from.last_name,
+              username: from.username,
+              visitedAt: new Date().toISOString(),
+              botToken: botToken
+            };
+            if (existingVisitorIdx >= 0) {
+              config.botVisitors[existingVisitorIdx] = { ...config.botVisitors[existingVisitorIdx], ...visitorData };
+            } else {
+              config.botVisitors.push(visitorData);
+            }
+            await saveConfig(c.env, config);
+          } catch(e) {
+            console.error("Failed tracking visitor", e);
+          }
+        }
+        
         const appUrl = "https://id.vipcf.workers.dev";
         const messageText = "selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini";
         const replyMarkup = {
@@ -424,50 +451,31 @@ app.post('/api/bot/webhook/:token', async (c) => {
           ]
         };
         
-        if (config.botImageUrl) {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              photo: config.botImageUrl,
-              caption: messageText,
-              reply_markup: replyMarkup
-            })
-          });
-        } else {
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: messageText,
-              reply_markup: replyMarkup
-            })
-          });
-        }
-        
-        // Track the visitor
-        if (body.message.from) {
-          const from = body.message.from;
-          if (!config.botVisitors) {
-            config.botVisitors = [];
-          }
-          const existingVisitorIdx = config.botVisitors.findIndex((v: any) => v.id === from.id);
-          const visitorData = {
-            id: from.id,
-            firstName: from.first_name,
-            lastName: from.last_name,
-            username: from.username,
-            visitedAt: new Date().toISOString(),
-            botToken: botToken
-          };
-          if (existingVisitorIdx >= 0) {
-            config.botVisitors[existingVisitorIdx] = { ...config.botVisitors[existingVisitorIdx], ...visitorData };
+        try {
+          if (config.botImageUrl) {
+            await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                photo: config.botImageUrl,
+                caption: messageText,
+                reply_markup: replyMarkup
+              })
+            });
           } else {
-            config.botVisitors.push(visitorData);
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: messageText,
+                reply_markup: replyMarkup
+              })
+            });
           }
-          await saveConfig(c.env, config);
+        } catch(e) {
+          console.error("Failed to send bot response", e);
         }
       }
     }

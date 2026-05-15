@@ -151,6 +151,40 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteBot = async (index: number) => {
+    if (!confirm('Yakin ingin menghapus bot ini?')) return;
+    const newBots = telegramBots.filter((_, i) => i !== index);
+    setTelegramBots(newBots);
+    
+    try {
+      await fetch('/api/admin/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password
+        },
+        body: JSON.stringify({ telegramBots: newBots })
+      });
+      loadConfig(password);
+    } catch(e) {}
+  };
+
+  const handleDeleteAllBots = async () => {
+    if (!confirm('Yakin ingin menghapus SEMUA bot?')) return;
+    setTelegramBots([]);
+    try {
+      await fetch('/api/admin/config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': password
+        },
+        body: JSON.stringify({ telegramBots: [] })
+      });
+      loadConfig(password);
+    } catch(e) {}
+  };
+
   const handleRefreshWebhook = async () => {
     try {
       const res = await fetch('/api/bot/set-webhook');
@@ -305,17 +339,23 @@ export default function Admin() {
                           />
                         </div>
                         <button 
-                          onClick={() => {
-                            const newBots = telegramBots.filter((_, i) => i !== index);
-                            setTelegramBots(newBots);
-                          }}
-                          className="bg-red-500/20 hover:bg-red-500/40 text-red-500 p-3 rounded-xl transition-colors"
-                          title="Hapus Bot"
+                          onClick={() => handleDeleteBot(index)}
+                          className="bg-red-500/20 hover:bg-red-500/40 text-red-500 p-3 rounded-xl transition-colors shrink-0"
+                          title="Hapus Bot Secara Terbuka dan Simpan (Auto Save)"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
                      </div>
                    ))}
+                   
+                   {telegramBots.length > 0 && (
+                     <button 
+                       onClick={handleDeleteAllBots}
+                       className="w-full py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-colors text-sm font-bold"
+                     >
+                       Hapus Semua Bot
+                     </button>
+                   )}
                    
                    <button 
                     onClick={() => setTelegramBots([...telegramBots, { name: 'Bot Baru', token: '' }])}
