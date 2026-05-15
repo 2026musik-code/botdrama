@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Settings, Users, Key, Trash2, Save, LogOut, Search, Activity, Edit2 } from 'lucide-react';
+import { Settings, Users, Key, Trash2, Save, LogOut, Search, Activity, Edit2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Admin() {
@@ -147,6 +147,20 @@ export default function Admin() {
         setBotImageUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRefreshWebhook = async () => {
+    try {
+      const res = await fetch('/api/bot/set-webhook');
+      const data = await res.json();
+      if (res.ok) {
+        alert('Webhook berhasil didaftarkan/di-refresh!\n\n' + JSON.stringify(data.results, null, 2));
+      } else {
+        alert('Gagal refresh webhook: ' + data.error);
+      }
+    } catch (e: any) {
+      alert('Error: ' + e.message);
     }
   };
 
@@ -300,10 +314,18 @@ export default function Admin() {
                    >
                      + Tambah Bot
                    </button>
+                   
+                   <button 
+                     type="button"
+                     onClick={handleRefreshWebhook}
+                     className="w-full flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 font-bold py-3 mt-4 rounded-xl transition-colors border border-emerald-500/20 text-sm"
+                   >
+                     <RefreshCw className="w-4 h-4" /> Daftarkan Webhook Semua Bot
+                   </button>
                  </div>
 
                  <small className="text-slate-500 text-xs mt-1 block mb-4">
-                   Setelah menyimpan info bot, jalankan url <code>/api/bot/set-webhook</code> di browser untuk mengaktifkan webhook semua bot di atas.
+                   Setelah menyimpan info bot, klik tombol <b>Daftarkan Webhook</b> di atas untuk menyambungkan bot ke sistem web ini.
                  </small>
                </div>
                <div>
