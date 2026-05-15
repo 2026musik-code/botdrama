@@ -89,7 +89,7 @@ app.use('/api/*', (c, next) => {
 const getConfig = async (env: Bindings) => {
   const data = await env.patungan.get('config');
   if (data) return JSON.parse(data);
-  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBotToken: "" };
+  return { popupText: "", qrImage: "", adminPassword: "admin", users: [], telegramBotToken: "", botImageUrl: "" };
 };
 
 // KV: Simpan konfigurasi
@@ -140,6 +140,7 @@ app.get('/api/admin/config', adminAuth, async (c) => {
     popupText: config.popupText,
     qrImage: config.qrImage,
     telegramBotToken: config.telegramBotToken,
+    botImageUrl: config.botImageUrl,
     users: config.users,
     apiKey
   });
@@ -152,6 +153,7 @@ app.post('/api/admin/config', adminAuth, async (c) => {
   if (body.popupText !== undefined) config.popupText = body.popupText;
   if (body.qrImage !== undefined) config.qrImage = body.qrImage;
   if (body.telegramBotToken !== undefined) config.telegramBotToken = body.telegramBotToken;
+  if (body.botImageUrl !== undefined) config.botImageUrl = body.botImageUrl;
   
   await saveConfig(c.env, config);
   
@@ -393,20 +395,36 @@ app.post('/api/bot/webhook', async (c) => {
 
       if (text.startsWith('/start')) {
         const appUrl = "https://id.vipcf.workers.dev";
+        const messageText = "selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini";
+        const replyMarkup = {
+          inline_keyboard: [
+            [{ text: "📱 BUKA APLIKASI", web_app: { url: appUrl } }],
+            [{ text: "Bergabung ke group WhatsApp", url: "https://chat.whatsapp.com/FfMt4vbJQGfJGvEVdurhP6" }]
+          ]
+        };
         
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: "Selamat datang! Klik tombol di bawah ini untuk membuka aplikasi.",
-            reply_markup: {
-              inline_keyboard: [[
-                { text: "📱 BUKA APLIKASI", web_app: { url: appUrl } }
-              ]]
-            }
-          })
-        });
+        if (config.botImageUrl) {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              photo: config.botImageUrl,
+              caption: messageText,
+              reply_markup: replyMarkup
+            })
+          });
+        } else {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: messageText,
+              reply_markup: replyMarkup
+            })
+          });
+        }
       }
     }
     return c.text('OK');

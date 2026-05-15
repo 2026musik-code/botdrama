@@ -14,6 +14,7 @@ export default function Admin() {
   const [qrImage, setQrImage] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [botImageUrl, setBotImageUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export default function Admin() {
         setQrImage(data.qrImage || '');
         setApiKey(data.apiKey || '');
         setTelegramBotToken(data.telegramBotToken || '');
+        setBotImageUrl(data.botImageUrl || '');
         setAuthenticated(true);
       } else {
         alert('Kata sandi salah');
@@ -55,7 +57,7 @@ export default function Admin() {
           'Content-Type': 'application/json',
           'x-admin-password': password
         },
-        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBotToken })
+        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBotToken, botImageUrl })
       });
       if (res.ok) {
         alert('Pengaturan berhasil disimpan');
@@ -132,6 +134,17 @@ export default function Admin() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setQrImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBotImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBotImageUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -247,9 +260,25 @@ export default function Admin() {
                    className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
                    placeholder="Masukkan Telegram Bot Token (Misal: 7262943555:AAGU3...)"
                  />
-                 <small className="text-slate-500 text-xs mt-1 block">
+                 <small className="text-slate-500 text-xs mt-1 block mb-4">
                    Setelah menyimpan token, jalankan url <code>/api/bot/set-webhook</code> di browser untuk mengaktifkan webhook.
                  </small>
+               </div>
+               <div>
+                 <label className="text-xs font-bold text-slate-400 mb-1 block">Gambar Bot /start (Upload/Base64/URL)</label>
+                 <input type="file" accept="image/*" onChange={handleBotImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
+                 <input 
+                   type="text" 
+                   value={botImageUrl}
+                   onChange={e => setBotImageUrl(e.target.value)}
+                   placeholder="Atau paste URL gambar bot disini"
+                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
+                 />
+                 {botImageUrl && (
+                   <div className="mt-3 bg-white p-2 w-32 h-32 rounded-xl border border-slate-600 mb-4">
+                     <img src={botImageUrl} alt="Bot Image Preview" className="w-full h-full object-contain" />
+                   </div>
+                 )}
                </div>
                <button onClick={handleSaveConfig} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl transition-colors border border-white/10">
                  <Save className="w-4 h-4" /> Simpan Pengaturan
