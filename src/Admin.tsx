@@ -395,13 +395,19 @@ export default function Admin() {
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">QR Code (Upload/Base64/URL)</label>
                  <input type="file" accept="image/*" onChange={handleImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
-                 <input 
-                   type="text" 
-                   value={qrImage}
-                   onChange={e => setQrImage(e.target.value)}
-                   placeholder="Atau paste URL gambar QR disini"
-                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
-                 />
+                 {qrImage.length > 200 && qrImage.startsWith('data:image/') ? (
+                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white/50 text-sm font-mono truncate">
+                     [Base64 Image Data]
+                   </div>
+                 ) : (
+                   <input 
+                     type="text" 
+                     value={qrImage}
+                     onChange={e => setQrImage(e.target.value)}
+                     placeholder="Atau paste URL gambar QR disini"
+                     className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500"
+                   />
+                 )}
                  {qrImage && (
                    <div className="mt-3 flex flex-col items-start gap-2 mb-4">
                      <div className="bg-white p-2 w-32 h-32 rounded-xl border border-slate-600">
@@ -562,13 +568,19 @@ export default function Admin() {
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Gambar Bot /start (Upload/Base64/URL)</label>
                  <input type="file" accept="image/*" onChange={handleBotImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
-                 <input 
-                   type="text" 
-                   value={botImageUrl}
-                   onChange={e => setBotImageUrl(e.target.value)}
-                   placeholder="Atau paste URL gambar bot disini"
-                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
-                 />
+                 {botImageUrl.length > 200 && botImageUrl.startsWith('data:image/') ? (
+                   <div className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white/50 text-sm font-mono truncate mb-4">
+                     [Base64 Image Data]
+                   </div>
+                 ) : (
+                   <input 
+                     type="text" 
+                     value={botImageUrl}
+                     onChange={e => setBotImageUrl(e.target.value)}
+                     placeholder="Atau paste URL gambar bot disini"
+                     className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
+                   />
+                 )}
                  {botImageUrl && (
                    <div className="mt-3 flex flex-col items-start gap-2 mb-4">
                      <div className="bg-white p-2 w-32 h-32 rounded-xl border border-slate-600">
