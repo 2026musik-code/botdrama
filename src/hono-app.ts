@@ -153,6 +153,9 @@ app.get('/api/admin/config', adminAuth, async (c) => {
     qrImage: config.qrImage,
     telegramBots: config.telegramBots,
     botImageUrl: config.botImageUrl,
+    botWelcomeText: config.botWelcomeText,
+    botAppUrl: config.botAppUrl,
+    botWaUrl: config.botWaUrl,
     users: config.users,
     botVisitors: config.botVisitors,
     apiKey
@@ -167,6 +170,9 @@ app.post('/api/admin/config', adminAuth, async (c) => {
   if (body.qrImage !== undefined) config.qrImage = body.qrImage;
   if (body.telegramBots !== undefined) config.telegramBots = body.telegramBots;
   if (body.botImageUrl !== undefined) config.botImageUrl = body.botImageUrl;
+  if (body.botWelcomeText !== undefined) config.botWelcomeText = body.botWelcomeText;
+  if (body.botAppUrl !== undefined) config.botAppUrl = body.botAppUrl;
+  if (body.botWaUrl !== undefined) config.botWaUrl = body.botWaUrl;
   
   await saveConfig(c.env, config);
   
@@ -479,12 +485,15 @@ app.post('/api/bot/webhook/:token', async (c) => {
           }
         }
         
-        const appUrl = "https://id.vipcf.workers.dev";
-        const messageText = "selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini";
+        const host = c.req.header('x-forwarded-host') || c.req.header('host') || 'id.vipcf.workers.dev';
+        const hostname = c.req.url ? new URL(c.req.url).hostname : host;
+        
+        const appUrl = config.botAppUrl || `https://${host}`;
+        const messageText = config.botWelcomeText || "selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini";
         const replyMarkup = {
           inline_keyboard: [
             [{ text: "📱 BUKA APLIKASI", web_app: { url: appUrl } }],
-            [{ text: "Bergabung ke group WhatsApp", url: "https://chat.whatsapp.com/FfMt4vbJQGfJGvEVdurhP6" }]
+            ...(config.botWaUrl ? [[{ text: "Bergabung ke group WhatsApp", url: config.botWaUrl }]] : [[{ text: "Bergabung ke group WhatsApp", url: "https://chat.whatsapp.com/FfMt4vbJQGfJGvEVdurhP6" }]])
           ]
         };
         

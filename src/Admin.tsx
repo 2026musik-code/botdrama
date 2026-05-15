@@ -15,6 +15,9 @@ export default function Admin() {
   const [apiKey, setApiKey] = useState('');
   const [telegramBots, setTelegramBots] = useState<{name: string, token: string}[]>([]);
   const [botImageUrl, setBotImageUrl] = useState('');
+  const [botWelcomeText, setBotWelcomeText] = useState('');
+  const [botAppUrl, setBotAppUrl] = useState('');
+  const [botWaUrl, setBotWaUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [activeRightTab, setActiveRightTab] = useState<'web' | 'bot'>('web');
   const [broadcastText, setBroadcastText] = useState('');
@@ -36,6 +39,9 @@ export default function Admin() {
         setApiKey(data.apiKey || '');
         setTelegramBots(data.telegramBots || []);
         setBotImageUrl(data.botImageUrl || '');
+        setBotWelcomeText(data.botWelcomeText || '');
+        setBotAppUrl(data.botAppUrl || '');
+        setBotWaUrl(data.botWaUrl || '');
         setAuthenticated(true);
       } else {
         alert('Kata sandi salah');
@@ -60,7 +66,7 @@ export default function Admin() {
           'Content-Type': 'application/json',
           'x-admin-password': password
         },
-        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBots, botImageUrl })
+        body: JSON.stringify({ popupText, qrImage, apiKey, telegramBots, botImageUrl, botWelcomeText, botAppUrl, botWaUrl })
       });
       if (res.ok) {
         alert('Pengaturan berhasil disimpan');
@@ -230,6 +236,56 @@ export default function Admin() {
     } finally {
       setBroadcasting(false);
     }
+  };
+
+  const exportWebVisitorsCSV = () => {
+    if (!config || !config.users || config.users.length === 0) return alert('Tidak ada data pengunjung web.');
+    const rows = [
+       ['ID', 'IP Address', 'User Agent', 'Device Info', 'Klik Masuk', 'Batas Masuk', 'Terakhir Aktif', 'Ban Status']
+    ];
+    config.users.forEach((u: any) => {
+       rows.push([
+         u.id, 
+         u.ip || '', 
+         `"${(u.userAgent || '').replace(/"/g, '""')}"`, 
+         `"${(u.deviceInfo || '').replace(/"/g, '""')}"`,
+         u.dataLimit?.toString() || '0',
+         u.limit?.toString() || '0',
+         new Date(u.lastActive).toISOString(),
+         u.limit === 0 ? 'Banned' : 'Active'
+       ]);
+    });
+    downloadCSV('Data_Pengunjung_Web.csv', rows);
+  };
+
+  const exportBotVisitorsCSV = () => {
+    if (!config || !config.botVisitors || config.botVisitors.length === 0) return alert('Tidak ada data pengunjung bot.');
+    const rows = [
+       ['Telegram ID', 'Username', 'Nama Depan', 'Nama Belakang', 'Waktu Berkunjung (/start)', 'Bot Token']
+    ];
+    config.botVisitors.forEach((v: any) => {
+       rows.push([
+         v.id || '',
+         v.username || '',
+         `"${(v.firstName || '').replace(/"/g, '""')}"`,
+         `"${(v.lastName || '').replace(/"/g, '""')}"`,
+         new Date(v.visitedAt).toISOString(),
+         v.botToken || ''
+       ]);
+    });
+    downloadCSV('Data_Pengunjung_Bot.csv', rows);
+  };
+
+  const downloadCSV = (filename: string, rows: string[][]) => {
+    const csvContent = rows.map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!authenticated) {
@@ -418,6 +474,36 @@ export default function Admin() {
                    Setelah menyimpan info bot, klik tombol <b>Daftarkan Webhook</b> di atas untuk menyambungkan bot ke sistem web ini.
                  </small>
                </div>
+               
+               <div>
+                 <label className="text-xs font-bold text-slate-400 mb-1 block">Teks Sambutan Pendaftaran Bot (/start)</label>
+                 <textarea 
+                   rows={3}
+                   value={botWelcomeText}
+                   onChange={e => setBotWelcomeText(e.target.value)}
+                   placeholder="selamat datang pecinta Drama\nBuka tombol aplikasi di bawah ini"
+                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4 resize-none"
+                 />
+                 
+                 <label className="text-xs font-bold text-slate-400 mb-1 block">URL Tombol Buka Aplikasi (Opsional)</label>
+                 <input 
+                   type="text" 
+                   value={botAppUrl}
+                   onChange={e => setBotAppUrl(e.target.value)}
+                   placeholder="Contoh: https://id.vipcf.workers.dev"
+                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
+                 />
+                 
+                 <label className="text-xs font-bold text-slate-400 mb-1 block">URL Tombol Grup WhatsApp (Opsional)</label>
+                 <input 
+                   type="text" 
+                   value={botWaUrl}
+                   onChange={e => setBotWaUrl(e.target.value)}
+                   placeholder="Contoh: https://chat.whatsapp.com/FfMt4vbJQGfJGvEVdurhP6"
+                   className="w-full bg-[#1A1A1D] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 mb-4"
+                 />
+               </div>
+
                <div>
                  <label className="text-xs font-bold text-slate-400 mb-1 block">Gambar Bot /start (Upload/Base64/URL)</label>
                  <input type="file" accept="image/*" onChange={handleBotImageUpload} className="mb-2 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400" />
@@ -488,12 +574,21 @@ export default function Admin() {
            
            {activeRightTab === 'web' && (
              <>
-               <div className="flex items-center justify-between mb-2">
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                   <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna
+                   <Users className="w-5 h-5 text-amber-500" /> Daftar Pengguna Web
                  </h2>
-                 <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
-                   Total: {config?.users?.length || 0}
+                 <div className="flex items-center gap-3">
+                   <button 
+                     onClick={exportWebVisitorsCSV}
+                     className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                     Export CSV
+                   </button>
+                   <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                     Total: {config?.users?.length || 0}
+                   </div>
                  </div>
                </div>
                
@@ -579,13 +674,22 @@ export default function Admin() {
                  </div>
                </div>
 
-               <div className="flex items-center justify-between mb-2">
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
                    Riwayat Pengunjung Bot (/start)
                  </h2>
-                 <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
-                   Total: {config?.botVisitors?.length || 0}
+                 <div className="flex items-center gap-3">
+                   <button 
+                     onClick={exportBotVisitorsCSV}
+                     className="bg-[#1A1A1D] border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-2"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                     Export CSV
+                   </button>
+                   <div className="text-xs font-bold bg-[#161618] border border-white/5 px-4 py-2 rounded-xl text-slate-400">
+                     Total: {config?.botVisitors?.length || 0}
+                   </div>
                  </div>
                </div>
                
